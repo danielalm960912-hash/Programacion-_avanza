@@ -18,15 +18,6 @@ excepciones, en el contexto de un proyecto académico de álgebra lineal.
 
 - Python 3
 
-## Librerías
-
-- `random`: librería estándar de Python, usada para generar los valores
-  de las matrices aleatorias.
-
-No se utilizan librerías externas (no se requiere `pip install` de nada
-adicional); todas las operaciones matemáticas están implementadas
-manualmente para poder explicarlas durante la sustentación.
-
 ## Funcionalidades
 
 - Sumar matrices
