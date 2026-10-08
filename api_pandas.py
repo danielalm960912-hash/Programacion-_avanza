@@ -2,12 +2,15 @@ import pandas as pd
 import requests
 
 
-class DatasetAPI:
+class DatasetAPI: 
     def __init__(self, url):
+        """ Constructor"""
         self.url = url
         self.df = None
 
-    def fetch_data(self): # Obtener datos
+
+    def fetch_data(self): 
+        """Obtener datos"""
         try:
             response = requests.get(self.url)
             response.raise_for_status()
@@ -18,7 +21,8 @@ class DatasetAPI:
             self.df = pd.DataFrame()  # evita que truene más abajo si falla
     
 
-    def clean_data(self): # Limpiar datos
+    def clean_data(self):
+        """Limpiar datos"""
         numeric_columns = [
         "cobertura_neta", "cobertura_bruta", "desercion",
         "aprobacion", "reprobacion", "repitencia"
@@ -27,7 +31,8 @@ class DatasetAPI:
             if col in self.df.columns:
                 self.df[col] = pd.to_numeric(self.df[col], errors="coerce")
 
-    def load_dataset(self): # Cargar datos
+    def load_dataset(self):
+        """Cargar datos"""
         self.fetch_data()
         self.clean_data()
         return self.df

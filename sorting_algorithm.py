@@ -63,7 +63,6 @@ class MergeSort(SortingAlgorithm):
         mid = len(data) // 2
         left = self.sort(data[:mid], criteria)
         right = self.sort(data[mid:], criteria)
-
         return self._merge(left, right, criteria)
 
     def _merge(self, left, right, criteria: str):
@@ -80,6 +79,7 @@ class MergeSort(SortingAlgorithm):
         result.extend(left[i:])
         result.extend(right[j:])
         return result
+
 
 
 class QuickSort(SortingAlgorithm):
@@ -248,6 +248,9 @@ class BucketSort(SortingAlgorithm):
             data[j + 1] = key
         return data
     
+    
+
+
     
     #Pruebas
     
