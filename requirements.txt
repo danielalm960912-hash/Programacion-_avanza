@@ -1,2 +1,0 @@
-# Este proyecto solo utiliza librerias estandar de Python (random),
-# por lo que no requiere instalar dependencias externas.
