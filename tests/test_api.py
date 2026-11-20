@@ -39,3 +39,12 @@ def test_predict_rechaza_datos_invalidos(cliente):
 def test_predict_rechaza_cuerpo_que_no_es_json(cliente):
     respuesta = cliente.post("/api/predict", data="hola")
     assert respuesta.status_code == 400
+    
+    
+def test_predict_queda_registrada(cliente):
+    ejemplo = cliente.get("/api/ejemplos").get_json()[0]
+    prediccion_id = cliente.post("/api/predict", json=ejemplo["entradas"]).get_json()["prediccion_id"]
+    assert isinstance(prediccion_id, int)
+
+    historial = cliente.get("/api/predicciones").get_json()
+    assert prediccion_id in [p["id"] for p in historial]

@@ -7,6 +7,7 @@ Cada clase es una tabla; Flask-SQLAlchemy la nombra en minúscula y singular
 """
 
 from datetime import datetime, timezone
+from sqlalchemy.dialects.postgresql import JSONB
 
 from app.persistence.db import db
 
@@ -113,3 +114,38 @@ class Resultado(db.Model):
     punt_sociales_ciudadanas = db.Column(db.Integer)
     punt_ingles = db.Column(db.Integer)
     desemp_ingles = db.Column(db.Text)
+    
+# ---------------------------------------------------------------------------
+# Grupo 2: modelo y predicciones (los llena la app al predecir)
+# ---------------------------------------------------------------------------
+
+
+class ModelVersion(db.Model):
+    """Cada versión del modelo que ha hecho predicciones (trazabilidad)."""
+
+    id = db.Column(db.Integer, primary_key=True)
+    nombre = db.Column(db.Text, nullable=False)
+    version = db.Column(db.Text, nullable=False)
+    archivo = db.Column(db.Text, nullable=False)
+    algoritmo = db.Column(db.Text)
+    rmse_prueba = db.Column(db.Float)
+    entrenado_en = db.Column(db.DateTime(timezone=True))
+    registrado_en = db.Column(db.DateTime(timezone=True), nullable=False, default=ahora)
+
+
+db.Index("ux_model_version", ModelVersion.nombre, ModelVersion.version, unique=True)
+
+
+class Prediction(db.Model):
+    """Registro persistente de cada inferencia: entradas, resultado, versión y fecha."""
+
+    id = db.Column(db.Integer, primary_key=True)
+    model_version_id = db.Column(db.Integer, db.ForeignKey("model_version.id"), nullable=False)
+    creado_en = db.Column(db.DateTime(timezone=True), nullable=False, default=ahora)
+    origen = db.Column(db.Text, nullable=False)
+    entradas = db.Column(JSONB, nullable=False)
+    puntaje_predicho = db.Column(db.Float, nullable=False)
+    rango_inferior = db.Column(db.Float)
+    rango_superior = db.Column(db.Float)
+    etiqueta = db.Column(db.Text)
+    latencia_ms = db.Column(db.Float)

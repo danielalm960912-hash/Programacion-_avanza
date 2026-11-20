@@ -7,6 +7,8 @@ from app.persistence.db import base_datos_disponible, db
 from app.persistence.models import Ingesta
 from app.services.ingesta import ejecutar_ingesta
 from app.services.model_service import EntradaInvalida
+from app.persistence.repositorio import ultimas_predicciones
+from app.services.prediction_services import predecir_y_registrar
 
 api_bp = Blueprint("api", "app.api.routes", url_prefix="/api")
 
@@ -54,7 +56,7 @@ def predict():
         return jsonify(errores=["el cuerpo debe ser un objeto JSON con los datos del estudiante"]), 400
 
     try:
-        resultado = servicio().predecir(entradas)
+        resultado = predecir_y_registrar(entradas, origen="api")
     except EntradaInvalida as error:
         return jsonify(errores=error.errores), 400
 
@@ -88,4 +90,23 @@ def ingestas():
             "mensaje": i.mensaje,
         }
         for i in filas
+    ])
+    
+    
+@api_bp.get("/predicciones")
+def predicciones():
+    """Historial de las últimas 50 predicciones (trazabilidad de la inferencia)."""
+    return jsonify([
+        {
+            "id": p.id,
+            "creado_en": p.creado_en.isoformat(),
+            "model_version_id": p.model_version_id,
+            "origen": p.origen,
+            "puntaje_predicho": p.puntaje_predicho,
+            "rango": [p.rango_inferior, p.rango_superior],
+            "etiqueta": p.etiqueta,
+            "latencia_ms": p.latencia_ms,
+            "entradas": p.entradas,
+        }
+        for p in ultimas_predicciones()
     ])
