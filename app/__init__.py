@@ -23,5 +23,14 @@ def create_app() -> Flask:
     # capa API: registra los endpoints
     from app.api.routes import api_bp
     app.register_blueprint(api_bp)
+    
+    # comando de consola:  flask --app app crear-tablas
+    @app.cli.command("crear-tablas")
+    def crear_tablas():
+        """Crea en la base de datos las tablas que aún no existen."""
+        from app.persistence import models  # noqa: F401  (registra las tablas)
+
+        db.create_all()
+        print("Tablas creadas (o ya existían).")
 
     return app
