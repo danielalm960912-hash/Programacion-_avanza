@@ -1,0 +1,526 @@
+{
+  "modelo": {
+    "nombre": "saber11_hgb",
+    "version": "v1",
+    "archivo": "saber11_hgb_v1.joblib",
+    "algoritmo": "HistGradientBoostingRegressor",
+    "hiperparametros": {
+      "learning_rate": 0.10616525141677582,
+      "max_iter": 367,
+      "max_depth": 7,
+      "min_samples_leaf": 88,
+      "l2_regularization": 0.0011367627929023169
+    },
+    "entrenado_en": "2026-11-19T22:40:01+00:00"
+  },
+  "entorno": {
+    "python": "3.12.2",
+    "scikit-learn": "1.9.1",
+    "pandas": "3.1.1",
+    "numpy": "2.5.5",
+    "joblib": "1.6.0"
+  },
+  "metricas": {
+    "rmse_prueba": 40.42,
+    "rmse_validacion_cruzada": {
+      "media": 40.55,
+      "desviacion": 0.17,
+      "fuente": "notebook, sección 6 (5 folds)"
+    },
+    "filas_entrenamiento": 57906,
+    "filas_prueba": 14477
+  },
+  "datos": {
+    "fuente": "https://www.datos.gov.co/resource/kgxf-xxbe.json",
+    "filtro": "periodo = '20224' AND cole_depto_ubicacion = 'ANTIOQUIA'",
+    "objetivo": "punt_global"
+  },
+  "entradas": {
+    "columnas": [
+      "estu_tipodocumento",
+      "cole_area_ubicacion",
+      "cole_bilingue",
+      "cole_calendario",
+      "cole_caracter",
+      "cole_genero",
+      "cole_jornada",
+      "cole_mcpio_ubicacion",
+      "cole_naturaleza",
+      "cole_sede_principal",
+      "estu_genero",
+      "fami_educacionmadre",
+      "fami_educacionpadre",
+      "fami_estratovivienda",
+      "fami_tieneinternet",
+      "fami_cuartoshogar",
+      "fami_personashogar",
+      "fami_tieneautomovil",
+      "fami_tienecomputador",
+      "fami_tienelavadora",
+      "edad"
+    ],
+    "numericas": [
+      "edad",
+      "fami_cuartoshogar",
+      "fami_personashogar"
+    ],
+    "ordinales": {
+      "fami_estratovivienda": [
+        "Estrato 1",
+        "Estrato 2",
+        "Estrato 3",
+        "Estrato 4",
+        "Estrato 5",
+        "Estrato 6"
+      ],
+      "fami_educacionpadre": [
+        "Ninguno",
+        "Primaria incompleta",
+        "Primaria completa",
+        "Secundaria (Bachillerato) incompleta",
+        "Secundaria (Bachillerato) completa",
+        "Técnica o tecnológica incompleta",
+        "Técnica o tecnológica completa",
+        "Educación profesional incompleta",
+        "Educación profesional completa",
+        "Postgrado"
+      ],
+      "fami_educacionmadre": [
+        "Ninguno",
+        "Primaria incompleta",
+        "Primaria completa",
+        "Secundaria (Bachillerato) incompleta",
+        "Secundaria (Bachillerato) completa",
+        "Técnica o tecnológica incompleta",
+        "Técnica o tecnológica completa",
+        "Educación profesional incompleta",
+        "Educación profesional completa",
+        "Postgrado"
+      ]
+    },
+    "opciones": {
+      "estu_tipodocumento": [
+        "CC",
+        "CE",
+        "CR",
+        "NES",
+        "PE",
+        "PEP",
+        "PPT",
+        "RC",
+        "TI"
+      ],
+      "cole_area_ubicacion": [
+        "RURAL",
+        "URBANO"
+      ],
+      "cole_bilingue": [
+        "N",
+        "S"
+      ],
+      "cole_calendario": [
+        "A",
+        "OTRO"
+      ],
+      "cole_caracter": [
+        "ACADÉMICO",
+        "NO APLICA",
+        "TÉCNICO",
+        "TÉCNICO/ACADÉMICO"
+      ],
+      "cole_genero": [
+        "FEMENINO",
+        "MASCULINO",
+        "MIXTO"
+      ],
+      "cole_jornada": [
+        "COMPLETA",
+        "MAÑANA",
+        "NOCHE",
+        "SABATINA",
+        "TARDE",
+        "UNICA"
+      ],
+      "cole_mcpio_ubicacion": [
+        "ABEJORRAL",
+        "ABRIAQUÍ",
+        "ALEJANDRÍA",
+        "AMAGÁ",
+        "AMALFI",
+        "ANDES",
+        "ANGELÓPOLIS",
+        "ANGOSTURA",
+        "ANORÍ",
+        "ANZÁ",
+        "APARTADÓ",
+        "ARBOLETES",
+        "ARGELIA",
+        "ARMENIA",
+        "BARBOSA",
+        "BELLO",
+        "BELMIRA",
+        "BETANIA",
+        "BETULIA",
+        "BRICEÑO",
+        "BURITICÁ",
+        "CAICEDO",
+        "CALDAS",
+        "CAMPAMENTO",
+        "CARACOLÍ",
+        "CARAMANTA",
+        "CAREPA",
+        "CAROLINA",
+        "CAUCASIA",
+        "CAÑASGORDAS",
+        "CHIGORODÓ",
+        "CISNEROS",
+        "CIUDAD BOLÍVAR",
+        "COCORNÁ",
+        "CONCEPCIÓN",
+        "CONCORDIA",
+        "COPACABANA",
+        "CÁCERES",
+        "DABEIBA",
+        "DONMATÍAS",
+        "EBÉJICO",
+        "EL BAGRE",
+        "EL CARMEN DE VIBORAL",
+        "EL SANTUARIO",
+        "ENTRERRÍOS",
+        "ENVIGADO",
+        "FREDONIA",
+        "FRONTINO",
+        "GIRALDO",
+        "GIRARDOTA",
+        "GRANADA",
+        "GUADALUPE",
+        "GUARNE",
+        "GUATAPÉ",
+        "GÓMEZ PLATA",
+        "HELICONIA",
+        "HISPANIA",
+        "ITAGÜÍ",
+        "ITUANGO",
+        "JARDÍN",
+        "JERICÓ",
+        "LA CEJA",
+        "LA ESTRELLA",
+        "LA PINTADA",
+        "LA UNIÓN",
+        "LIBORINA",
+        "MACEO",
+        "MARINILLA",
+        "MEDELLÍN",
+        "MONTEBELLO",
+        "MURINDÓ",
+        "MUTATÁ",
+        "NARIÑO",
+        "NECHÍ",
+        "NECOCLÍ",
+        "OLAYA",
+        "PEQUE",
+        "PEÑOL",
+        "PUEBLORRICO",
+        "PUERTO BERRÍO",
+        "PUERTO NARE",
+        "PUERTO TRIUNFO",
+        "REMEDIOS",
+        "RETIRO",
+        "RIONEGRO",
+        "SABANALARGA",
+        "SABANETA",
+        "SALGAR",
+        "SAN ANDRÉS DE CUERQUÍA",
+        "SAN CARLOS",
+        "SAN FRANCISCO",
+        "SAN JERÓNIMO",
+        "SAN JOSÉ DE LA MONTAÑA",
+        "SAN JUAN DE URABÁ",
+        "SAN LUIS",
+        "SAN PEDRO DE LOS MILAGROS",
+        "SAN PEDRO DE URABÁ",
+        "SAN RAFAEL",
+        "SAN ROQUE",
+        "SAN VICENTE FERRER",
+        "SANTA BÁRBARA",
+        "SANTA FÉ DE ANTIOQUIA",
+        "SANTA ROSA DE OSOS",
+        "SANTO DOMINGO",
+        "SEGOVIA",
+        "SONSÓN",
+        "SOPETRÁN",
+        "TARAZÁ",
+        "TARSO",
+        "TITIRIBÍ",
+        "TOLEDO",
+        "TURBO",
+        "TÁMESIS",
+        "URAMITA",
+        "URRAO",
+        "VALDIVIA",
+        "VALPARAÍSO",
+        "VEGACHÍ",
+        "VENECIA",
+        "VIGÍA DEL FUERTE",
+        "YALÍ",
+        "YARUMAL",
+        "YOLOMBÓ",
+        "YONDÓ",
+        "ZARAGOZA"
+      ],
+      "cole_naturaleza": [
+        "NO OFICIAL",
+        "OFICIAL"
+      ],
+      "cole_sede_principal": [
+        "N",
+        "S"
+      ],
+      "estu_genero": [
+        "F",
+        "M"
+      ],
+      "fami_educacionmadre": [
+        "Educación profesional completa",
+        "Educación profesional incompleta",
+        "Ninguno",
+        "No Aplica",
+        "No sabe",
+        "Postgrado",
+        "Primaria completa",
+        "Primaria incompleta",
+        "Secundaria (Bachillerato) completa",
+        "Secundaria (Bachillerato) incompleta",
+        "Técnica o tecnológica completa",
+        "Técnica o tecnológica incompleta"
+      ],
+      "fami_educacionpadre": [
+        "Educación profesional completa",
+        "Educación profesional incompleta",
+        "Ninguno",
+        "No Aplica",
+        "No sabe",
+        "Postgrado",
+        "Primaria completa",
+        "Primaria incompleta",
+        "Secundaria (Bachillerato) completa",
+        "Secundaria (Bachillerato) incompleta",
+        "Técnica o tecnológica completa",
+        "Técnica o tecnológica incompleta"
+      ],
+      "fami_estratovivienda": [
+        "Estrato 1",
+        "Estrato 2",
+        "Estrato 3",
+        "Estrato 4",
+        "Estrato 5",
+        "Estrato 6",
+        "Sin Estrato"
+      ],
+      "fami_tieneinternet": [
+        "No",
+        "Si"
+      ],
+      "fami_cuartoshogar": [
+        "Cinco",
+        "Cuatro",
+        "Dos",
+        "Seis o mas",
+        "Tres",
+        "Uno"
+      ],
+      "fami_personashogar": [
+        "1 a 2",
+        "3 a 4",
+        "5 a 6",
+        "7 a 8",
+        "9 o más"
+      ],
+      "fami_tieneautomovil": [
+        "No",
+        "Si"
+      ],
+      "fami_tienecomputador": [
+        "No",
+        "Si"
+      ],
+      "fami_tienelavadora": [
+        "No",
+        "Si"
+      ]
+    }
+  },
+  "transformaciones": {
+    "edad_rango_valido": [
+      10,
+      80
+    ],
+    "cuartos": {
+      "Uno": 1,
+      "Dos": 2,
+      "Tres": 3,
+      "Cuatro": 4,
+      "Cinco": 5,
+      "Seis o mas": 6
+    },
+    "personas": {
+      "1 a 2": 1.5,
+      "3 a 4": 3.5,
+      "5 a 6": 5.5,
+      "7 a 8": 7.5,
+      "9 o más": 9
+    },
+    "a_faltante": {
+      "fami_educacionpadre": [
+        "No sabe"
+      ],
+      "fami_educacionmadre": [
+        "No sabe"
+      ]
+    }
+  },
+  "etiquetas": {
+    "cuartiles_puntaje": {
+      "q1": 205.0,
+      "q2": 242.0,
+      "q3": 283.0
+    }
+  },
+  "ejemplos": [
+    {
+      "entradas": {
+        "edad": 21.0,
+        "estu_tipodocumento": "CC",
+        "cole_area_ubicacion": "URBANO",
+        "cole_bilingue": "N",
+        "cole_calendario": "A",
+        "cole_caracter": "ACADÉMICO",
+        "cole_genero": "MIXTO",
+        "cole_jornada": "NOCHE",
+        "cole_mcpio_ubicacion": "CAREPA",
+        "cole_naturaleza": "OFICIAL",
+        "cole_sede_principal": "S",
+        "estu_genero": "F",
+        "fami_educacionmadre": "Primaria incompleta",
+        "fami_educacionpadre": "Ninguno",
+        "fami_estratovivienda": "Estrato 5",
+        "fami_tieneinternet": "Si",
+        "fami_cuartoshogar": "Uno",
+        "fami_personashogar": "5 a 6",
+        "fami_tieneautomovil": "No",
+        "fami_tienecomputador": "No",
+        "fami_tienelavadora": "Si"
+      },
+      "puntaje_real": 191.0,
+      "puntaje_predicho": 170.6
+    },
+    {
+      "entradas": {
+        "edad": 16.0,
+        "estu_tipodocumento": "TI",
+        "cole_area_ubicacion": "RURAL",
+        "cole_bilingue": "N",
+        "cole_calendario": "A",
+        "cole_caracter": "TÉCNICO/ACADÉMICO",
+        "cole_genero": "MIXTO",
+        "cole_jornada": "UNICA",
+        "cole_mcpio_ubicacion": "ITAGÜÍ",
+        "cole_naturaleza": "OFICIAL",
+        "cole_sede_principal": "N",
+        "estu_genero": "M",
+        "fami_educacionmadre": "Educación profesional completa",
+        "fami_educacionpadre": "Secundaria (Bachillerato) incompleta",
+        "fami_estratovivienda": "Estrato 3",
+        "fami_tieneinternet": "Si",
+        "fami_cuartoshogar": "Cuatro",
+        "fami_personashogar": "3 a 4",
+        "fami_tieneautomovil": "No",
+        "fami_tienecomputador": "Si",
+        "fami_tienelavadora": "Si"
+      },
+      "puntaje_real": 221.0,
+      "puntaje_predicho": 274.17
+    },
+    {
+      "entradas": {
+        "edad": 17.0,
+        "estu_tipodocumento": "TI",
+        "cole_area_ubicacion": "URBANO",
+        "cole_bilingue": "N",
+        "cole_calendario": "A",
+        "cole_caracter": "ACADÉMICO",
+        "cole_genero": "MIXTO",
+        "cole_jornada": "NOCHE",
+        "cole_mcpio_ubicacion": "MEDELLÍN",
+        "cole_naturaleza": "OFICIAL",
+        "cole_sede_principal": "S",
+        "estu_genero": "M",
+        "fami_educacionmadre": "Educación profesional incompleta",
+        "fami_educacionpadre": "Secundaria (Bachillerato) completa",
+        "fami_estratovivienda": "Estrato 2",
+        "fami_tieneinternet": "Si",
+        "fami_cuartoshogar": "Tres",
+        "fami_personashogar": "9 o más",
+        "fami_tieneautomovil": "No",
+        "fami_tienecomputador": "No",
+        "fami_tienelavadora": "No"
+      },
+      "puntaje_real": 198.0,
+      "puntaje_predicho": 221.49
+    },
+    {
+      "entradas": {
+        "edad": 16.0,
+        "estu_tipodocumento": "TI",
+        "cole_area_ubicacion": "RURAL",
+        "cole_bilingue": "N",
+        "cole_calendario": "A",
+        "cole_caracter": "TÉCNICO/ACADÉMICO",
+        "cole_genero": "MIXTO",
+        "cole_jornada": "COMPLETA",
+        "cole_mcpio_ubicacion": "LIBORINA",
+        "cole_naturaleza": "OFICIAL",
+        "cole_sede_principal": "S",
+        "estu_genero": "M",
+        "fami_educacionmadre": "Secundaria (Bachillerato) incompleta",
+        "fami_educacionpadre": "Secundaria (Bachillerato) incompleta",
+        "fami_estratovivienda": "Estrato 1",
+        "fami_tieneinternet": "No",
+        "fami_cuartoshogar": "Dos",
+        "fami_personashogar": "3 a 4",
+        "fami_tieneautomovil": "No",
+        "fami_tienecomputador": "No",
+        "fami_tienelavadora": "No"
+      },
+      "puntaje_real": 272.0,
+      "puntaje_predicho": 238.57
+    },
+    {
+      "entradas": {
+        "edad": 17.0,
+        "estu_tipodocumento": "TI",
+        "cole_area_ubicacion": "URBANO",
+        "cole_bilingue": "N",
+        "cole_calendario": "A",
+        "cole_caracter": "TÉCNICO/ACADÉMICO",
+        "cole_genero": "MIXTO",
+        "cole_jornada": "UNICA",
+        "cole_mcpio_ubicacion": "ENVIGADO",
+        "cole_naturaleza": "OFICIAL",
+        "cole_sede_principal": "S",
+        "estu_genero": "F",
+        "fami_educacionmadre": "Educación profesional completa",
+        "fami_educacionpadre": "Educación profesional completa",
+        "fami_estratovivienda": "Estrato 3",
+        "fami_tieneinternet": "Si",
+        "fami_cuartoshogar": "Tres",
+        "fami_personashogar": "3 a 4",
+        "fami_tieneautomovil": "Si",
+        "fami_tienecomputador": "Si",
+        "fami_tienelavadora": "Si"
+      },
+      "puntaje_real": 297.0,
+      "puntaje_predicho": 289.09
+    }
+  ]
+}
