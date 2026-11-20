@@ -2,6 +2,7 @@
 
 from flask import Blueprint, current_app, jsonify, request
 
+from app.persistence.db import base_datos_disponible
 from app.services.model_service import EntradaInvalida
 
 api_bp = Blueprint("api", "app.api.routes", url_prefix="/api")
@@ -14,8 +15,14 @@ def servicio():
 
 @api_bp.get("/health")
 def health():
-    """Responde si la app está viva y qué modelo tiene cargado."""
-    return jsonify(status="ok", modelo_version=servicio().version)
+    """Responde si la app está viva, qué modelo tiene cargado y si llega a la base de datos."""
+    bd_ok = base_datos_disponible()
+    cuerpo = {
+        "status": "ok" if bd_ok else "degradado",
+        "modelo_version": servicio().version,
+        "base_datos": "ok" if bd_ok else "sin conexión",
+    }
+    return jsonify(cuerpo), 200 if bd_ok else 503
 
 
 @api_bp.get("/opciones")
