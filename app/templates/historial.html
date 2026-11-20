@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+
+{% block contenido %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div>
+    <h1 class="h3 mb-0">Historial de predicciones</h1>
+    <p class="text-muted mb-0">Últimas 50 predicciones guardadas en PostgreSQL (trazabilidad de la inferencia).</p>
+  </div>
+  <button class="btn btn-outline-primary" id="boton-actualizar">Actualizar</button>
+</div>
+
+<div class="card">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead class="table-light">
+        <tr>
+          <th>N.º</th>
+          <th>Fecha y hora</th>
+          <th>Origen</th>
+          <th>Municipio del colegio</th>
+          <th class="text-end">Puntaje</th>
+          <th>Rango probable</th>
+          <th>Etiqueta</th>
+          <th class="text-end">Latencia (ms)</th>
+        </tr>
+      </thead>
+      <tbody id="filas">
+        <tr><td colspan="8" class="text-muted">Cargando...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const URL_PREDICCIONES = "/api/predicciones";
+  const COLORES = { "Bajo": "danger", "Medio-bajo": "warning", "Medio-alto": "info", "Alto": "success" };
+  const cuerpo = document.getElementById("filas");
+
+  // crea una celda <td> con un texto (textContent: el texto nunca se interpreta como HTML)
+  function celda(texto, clase) {
+    const td = document.createElement("td");
+    td.textContent = texto;
+    if (clase) td.className = clase;
+    return td;
+  }
+
+  function mensaje(texto) {
+    const fila = document.createElement("tr");
+    const td = celda(texto, "text-muted");
+    td.colSpan = 8;
+    fila.appendChild(td);
+    cuerpo.replaceChildren(fila);
+  }
+
+  async function cargar() {
+    mensaje("Cargando...");
+    try {
+      const respuesta = await fetch(URL_PREDICCIONES);
+      const predicciones = await respuesta.json();
+      if (predicciones.length === 0) {
+        mensaje("Todavía no hay predicciones guardadas.");
+        return;
+      }
+      cuerpo.replaceChildren();
+      for (const p of predicciones) {
+        const fila = document.createElement("tr");
+        fila.appendChild(celda(p.id));
+        fila.appendChild(celda(new Date(p.creado_en).toLocaleString("es-CO")));
+        fila.appendChild(celda(p.origen));
+        fila.appendChild(celda(p.entradas.cole_mcpio_ubicacion || "Sin dato"));
+        fila.appendChild(celda(p.puntaje_predicho, "text-end fw-semibold"));
+        fila.appendChild(celda(p.rango[0] + " – " + p.rango[1]));
+        const tdEtiqueta = document.createElement("td");
+        const insignia = document.createElement("span");
+        insignia.className = "badge text-bg-" + (COLORES[p.etiqueta] || "secondary");
+        insignia.textContent = p.etiqueta;
+        tdEtiqueta.appendChild(insignia);
+        fila.appendChild(tdEtiqueta);
+        fila.appendChild(celda(p.latencia_ms, "text-end"));
+        cuerpo.appendChild(fila);
+      }
+    } catch (error) {
+      mensaje("No se pudo cargar el historial: " + error.message);
+    }
+  }
+
+  document.getElementById("boton-actualizar").addEventListener("click", cargar);
+  cargar();
+</script>
+{% endblock %}

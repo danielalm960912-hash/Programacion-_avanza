@@ -54,9 +54,11 @@ def predict():
     entradas = request.get_json(silent=True)
     if not isinstance(entradas, dict):
         return jsonify(errores=["el cuerpo debe ser un objeto JSON con los datos del estudiante"]), 400
+    
+    origen = "web" if request.args.get("origen") == "web" else "api"
 
     try:
-        resultado = predecir_y_registrar(entradas, origen="api")
+        resultado = predecir_y_registrar(entradas, origen=origen)
     except EntradaInvalida as error:
         return jsonify(errores=error.errores), 400
 

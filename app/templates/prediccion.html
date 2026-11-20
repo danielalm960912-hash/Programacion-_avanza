@@ -1,0 +1,197 @@
+{% extends "base.html" %}
+
+{% block contenido %}
+<h1 class="h3">Predicción del puntaje global Saber 11</h1>
+<p class="text-muted">
+  Ingrese los datos del estudiante. Los campos que no conozca pueden quedar en
+  «Sin dato»: el modelo los completa como lo hizo durante el entrenamiento.
+</p>
+
+<div class="row g-4">
+  <div class="col-lg-8">
+    <form id="formulario" novalidate>
+      {% for titulo, campos in grupos %}
+      <div class="card mb-3">
+        <div class="card-header fw-semibold">{{ titulo }}</div>
+        <div class="card-body row g-3">
+          {% for campo in campos %}
+          <div class="col-md-6">
+            <label class="form-label" for="{{ campo.nombre }}">{{ campo.etiqueta }}</label>
+            {% if campo.opciones is none %}
+            <input class="form-control" type="number" id="{{ campo.nombre }}" name="{{ campo.nombre }}"
+                   min="{{ edad_min }}" max="{{ edad_max }}" step="1" placeholder="Sin dato">
+            {% else %}
+            <select class="form-select" id="{{ campo.nombre }}" name="{{ campo.nombre }}">
+              <option value="">— Sin dato —</option>
+              {% for opcion in campo.opciones %}
+              <option value="{{ opcion }}">{{ opcion }}</option>
+              {% endfor %}
+            </select>
+            {% endif %}
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endfor %}
+
+      <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-primary" id="boton-predecir">Predecir</button>
+        <button type="button" class="btn btn-outline-secondary" id="boton-ejemplo">Cargar ejemplo</button>
+        <button type="reset" class="btn btn-outline-danger" id="boton-limpiar">Limpiar</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="col-lg-4">
+    <div class="card sticky-top" style="top: 1rem;">
+      <div class="card-header fw-semibold">Resultado</div>
+      <div class="card-body" id="resultado">
+        <p class="text-muted mb-0">Complete el formulario y presione «Predecir».</p>
+      </div>
+    </div>
+    <div class="alert alert-info mt-3 d-none" id="aviso-ejemplo"></div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const URL_PREDECIR = "{{ url_for('api.predict') }}?origen=web";
+  const URL_EJEMPLOS = "{{ url_for('api.ejemplos') }}";
+  const RMSE = {{ rmse }};
+  const RMSE_PORCENTAJE = {{ rmse_porcentaje }};
+  const CUARTILES = {{ cuartiles | tojson }};
+  const ESCALA = 500;  // el puntaje global va de 0 a 500
+  const COLORES = { "Bajo": "danger", "Medio-bajo": "warning", "Medio-alto": "info", "Alto": "success" };
+
+  const formulario = document.getElementById("formulario");
+  const resultado = document.getElementById("resultado");
+  const avisoEjemplo = document.getElementById("aviso-ejemplo");
+  let ejemplos = [];
+  let siguienteEjemplo = 0;
+
+  function leerFormulario() {
+    const entradas = {};
+    for (const [nombre, valor] of new FormData(formulario)) {
+      entradas[nombre] = nombre === "edad" && valor !== "" ? Number(valor) : valor;
+    }
+    return entradas;
+  }
+
+  function mostrarErrores(errores) {
+    resultado.replaceChildren();
+    const alerta = document.createElement("div");
+    alerta.className = "alert alert-danger mb-0";
+    const lista = document.createElement("ul");
+    lista.className = "mb-0";
+    for (const error of errores) {
+      const item = document.createElement("li");
+      item.textContent = error;
+      lista.appendChild(item);
+    }
+    alerta.appendChild(lista);
+    resultado.appendChild(alerta);
+  }
+
+  // posición (en %) de un puntaje dentro de la barra de 0 a 500
+  function pos(puntaje) {
+    return Math.min(Math.max(puntaje / ESCALA * 100, 0), 100);
+  }
+
+  // barra visual: zonas de los cuartiles, franja de ± RMSE y punto predicho
+  function barraDeError(puntaje, inferior, superior) {
+    const zonas = [
+      [0, CUARTILES.q1, "danger"],
+      [CUARTILES.q1, CUARTILES.q2, "warning"],
+      [CUARTILES.q2, CUARTILES.q3, "info"],
+      [CUARTILES.q3, ESCALA, "success"],
+    ];
+    const fondo = zonas.map(([desde, hasta, color]) =>
+      `<div class="position-absolute h-100 bg-${color} bg-opacity-25"
+            style="left:${pos(desde)}%; width:${pos(hasta) - pos(desde)}%;"></div>`).join("");
+    const marcas = [0, CUARTILES.q1, CUARTILES.q2, CUARTILES.q3, ESCALA].map((valor) =>
+      `<span class="position-absolute small text-muted translate-middle-x"
+             style="left:${pos(valor)}%;">${Math.round(valor)}</span>`).join("");
+    return `
+      <div class="position-relative rounded overflow-hidden border" style="height: 2rem;">
+        ${fondo}
+        <div class="position-absolute h-100 bg-dark bg-opacity-25 border-start border-end border-dark"
+             style="left:${pos(inferior)}%; width:${pos(superior) - pos(inferior)}%;"></div>
+        <div class="position-absolute h-100 bg-dark" style="left:${pos(puntaje)}%; width:3px;"></div>
+      </div>
+      <div class="position-relative mb-2" style="height: 1.2rem;">${marcas}</div>
+      <div class="d-flex flex-wrap gap-1 small mb-3">
+        <span class="badge bg-danger bg-opacity-25 text-dark">Bajo</span>
+        <span class="badge bg-warning bg-opacity-25 text-dark">Medio-bajo</span>
+        <span class="badge bg-info bg-opacity-25 text-dark">Medio-alto</span>
+        <span class="badge bg-success bg-opacity-25 text-dark">Alto</span>
+      </div>`;
+  }
+
+  function mostrarResultado(datos) {
+    const color = COLORES[datos.etiqueta] || "secondary";
+    const [inferior, superior] = datos.rango;
+    resultado.innerHTML = `
+      <p class="text-muted mb-1">Puntaje global estimado</p>
+      <p class="display-5 fw-bold mb-1" id="puntaje"></p>
+      <p class="mb-3"><span class="badge text-bg-${color} fs-6" id="etiqueta"></span></p>
+      ${barraDeError(datos.puntaje_predicho, inferior, superior)}
+      <p class="mb-1"><strong>Rango probable:</strong> <span id="rango"></span></p>
+      <p class="small text-muted">
+        La franja oscura muestra el error típico del modelo: unos <strong>${Math.round(RMSE)} puntos</strong>
+        (RMSE de prueba ${RMSE}), cerca del <strong>${RMSE_PORCENTAJE} %</strong> del puntaje mediano
+        (${Math.round(CUARTILES.q2)}). Las zonas de color son los cuartiles de los estudiantes de entrenamiento.
+      </p>
+      <hr>
+      <p class="small text-muted mb-0">Modelo <span id="version"></span> · predicción n.º <span id="prediccion-id"></span> · <span id="latencia"></span> ms</p>`;
+    document.getElementById("puntaje").textContent = datos.puntaje_predicho;
+    document.getElementById("etiqueta").textContent = datos.etiqueta;
+    document.getElementById("rango").textContent = inferior + " – " + superior;
+    document.getElementById("version").textContent = datos.modelo_version;
+    document.getElementById("prediccion-id").textContent = datos.prediccion_id ?? "sin guardar";
+    document.getElementById("latencia").textContent = datos.latencia_ms;
+  }
+
+  formulario.addEventListener("submit", async (evento) => {
+    evento.preventDefault();
+    resultado.innerHTML = '<div class="spinner-border text-primary" role="status"></div>';
+    try {
+      const respuesta = await fetch(URL_PREDECIR, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(leerFormulario()),
+      });
+      const datos = await respuesta.json();
+      if (respuesta.ok) {
+        mostrarResultado(datos);
+      } else {
+        mostrarErrores(datos.errores || ["Error inesperado"]);
+      }
+    } catch (error) {
+      mostrarErrores(["No se pudo contactar al servidor: " + error.message]);
+    }
+  });
+
+  document.getElementById("boton-ejemplo").addEventListener("click", async () => {
+    if (ejemplos.length === 0) {
+      ejemplos = await (await fetch(URL_EJEMPLOS)).json();
+    }
+    const ejemplo = ejemplos[siguienteEjemplo % ejemplos.length];
+    siguienteEjemplo += 1;
+    formulario.reset();
+    for (const [nombre, valor] of Object.entries(ejemplo.entradas)) {
+      const campo = formulario.elements[nombre];
+      if (campo) campo.value = valor ?? "";
+    }
+    avisoEjemplo.textContent =
+      "Ejemplo " + siguienteEjemplo + ": estudiante real del conjunto de prueba. " +
+      "Su puntaje real fue " + ejemplo.puntaje_real + ".";
+    avisoEjemplo.classList.remove("d-none");
+  });
+
+  document.getElementById("boton-limpiar").addEventListener("click", () => {
+    avisoEjemplo.classList.add("d-none");
+    resultado.innerHTML = '<p class="text-muted mb-0">Complete el formulario y presione «Predecir».</p>';
+  });
+</script>
+{% endblock %}

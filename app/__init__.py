@@ -24,6 +24,10 @@ def create_app() -> Flask:
     from app.api.routes import api_bp
     app.register_blueprint(api_bp)
     
+    # capa de presentación: registra las páginas web
+    from app.web.routes import web_bp
+    app.register_blueprint(web_bp)
+    
     # comando de consola:  flask --app app crear-tablas
     @app.cli.command("crear-tablas")
     def crear_tablas():

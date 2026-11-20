@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+
+{% block contenido %}
+<h1 class="h3">Datos: ingesta desde datos.gov.co</h1>
+<p class="text-muted">
+  Descarga los resultados Saber 11 de Antioquia (periodo 2022-2) desde el portal de datos abiertos,
+  los normaliza y los guarda en PostgreSQL. Si los datos ya existen, no se duplican.
+</p>
+
+<div class="card mb-4">
+  <div class="card-body">
+    <button class="btn btn-primary" id="boton-ingesta">Actualizar datos desde datos.gov.co</button>
+    <span class="text-muted small ms-2">La carga tarda alrededor de un minuto y medio.</span>
+    <div class="mt-3" id="resultado-ingesta"></div>
+  </div>
+</div>
+
+<div class="d-flex justify-content-between align-items-center mb-2">
+  <h2 class="h5 mb-0">Historial de cargas</h2>
+  <button class="btn btn-sm btn-outline-primary" id="boton-actualizar">Actualizar</button>
+</div>
+<div class="card">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead class="table-light">
+        <tr>
+          <th>N.º</th>
+          <th>Fecha y hora</th>
+          <th>Estado</th>
+          <th class="text-end">Filas recibidas</th>
+          <th class="text-end">Filas únicas</th>
+          <th class="text-end">Estudiantes nuevos</th>
+          <th class="text-end">Duración (s)</th>
+        </tr>
+      </thead>
+      <tbody id="filas">
+        <tr><td colspan="7" class="text-muted">Cargando...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const URL_INGESTA = "/api/ingesta";
+  const URL_INGESTAS = "/api/ingestas";
+  const cuerpo = document.getElementById("filas");
+  const botonIngesta = document.getElementById("boton-ingesta");
+  const resultadoIngesta = document.getElementById("resultado-ingesta");
+
+  function celda(texto, clase) {
+    const td = document.createElement("td");
+    td.textContent = texto === null || texto === undefined ? "—" : texto;
+    if (clase) td.className = clase;
+    return td;
+  }
+
+  function numero(valor) {
+    return valor === null || valor === undefined ? "—" : Number(valor).toLocaleString("es-CO");
+  }
+
+  function mensaje(texto) {
+    const fila = document.createElement("tr");
+    const td = celda(texto, "text-muted");
+    td.colSpan = 7;
+    fila.appendChild(td);
+    cuerpo.replaceChildren(fila);
+  }
+
+  async function cargarHistorial() {
+    mensaje("Cargando...");
+    try {
+      const ingestas = await (await fetch(URL_INGESTAS)).json();
+      if (ingestas.length === 0) {
+        mensaje("Todavía no se ha hecho ninguna carga.");
+        return;
+      }
+      cuerpo.replaceChildren();
+      for (const i of ingestas) {
+        const fila = document.createElement("tr");
+        fila.appendChild(celda(i.id));
+        fila.appendChild(celda(new Date(i.fecha).toLocaleString("es-CO")));
+        const tdEstado = document.createElement("td");
+        const insignia = document.createElement("span");
+        insignia.className = "badge text-bg-" + (i.estado === "exitosa" ? "success" : "danger");
+        insignia.textContent = i.estado;
+        insignia.title = i.mensaje || "";
+        tdEstado.appendChild(insignia);
+        fila.appendChild(tdEstado);
+        fila.appendChild(celda(numero(i.filas_recibidas), "text-end"));
+        fila.appendChild(celda(numero(i.filas_unicas), "text-end"));
+        fila.appendChild(celda(numero(i.filas_nuevas), "text-end fw-semibold"));
+        fila.appendChild(celda(i.duracion_s, "text-end"));
+        cuerpo.appendChild(fila);
+      }
+    } catch (error) {
+      mensaje("No se pudo cargar el historial: " + error.message);
+    }
+  }
+
+  function mostrarAlerta(tipo, titulo, lineas) {
+    const alerta = document.createElement("div");
+    alerta.className = "alert alert-" + tipo + " mb-0";
+    const encabezado = document.createElement("strong");
+    encabezado.textContent = titulo;
+    alerta.appendChild(encabezado);
+    const lista = document.createElement("ul");
+    lista.className = "mb-0 mt-2";
+    for (const linea of lineas) {
+      const item = document.createElement("li");
+      item.textContent = linea;
+      lista.appendChild(item);
+    }
+    alerta.appendChild(lista);
+    resultadoIngesta.replaceChildren(alerta);
+  }
+
+  botonIngesta.addEventListener("click", async () => {
+    botonIngesta.disabled = true;
+    resultadoIngesta.innerHTML =
+      '<div class="d-flex align-items-center gap-2 text-primary">' +
+      '<div class="spinner-border spinner-border-sm" role="status"></div>' +
+      '<span>Descargando y guardando los datos... no cierre esta página.</span></div>';
+    try {
+      const respuesta = await fetch(URL_INGESTA, { method: "POST" });
+      const datos = await respuesta.json();
+      if (respuesta.ok) {
+        const lineas = Object.entries(datos.filas_nuevas_por_tabla).map(
+          ([tabla, nuevas]) => "Tabla " + tabla + ": " + numero(nuevas) + " filas nuevas"
+        );
+        lineas.unshift(
+          "Filas recibidas: " + numero(datos.filas_recibidas) +
+          " · únicas: " + numero(datos.filas_unicas) +
+          " · duración: " + datos.duracion_s + " s"
+        );
+        mostrarAlerta("success", "Carga n.º " + datos.ingesta_id + " exitosa", lineas);
+      } else {
+        mostrarAlerta("danger", "La carga falló", [datos.error || "Error inesperado"]);
+      }
+    } catch (error) {
+      mostrarAlerta("danger", "No se pudo contactar al servidor", [error.message]);
+    } finally {
+      botonIngesta.disabled = false;
+      cargarHistorial();
+    }
+  });
+
+  document.getElementById("boton-actualizar").addEventListener("click", cargarHistorial);
+  cargarHistorial();
+</script>
+{% endblock %}
