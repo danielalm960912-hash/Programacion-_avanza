@@ -1,8 +1,11 @@
 """Capa API: endpoints que reciben peticiones HTTP y responden en JSON."""
 
 from flask import Blueprint, current_app, jsonify, request
+from sqlalchemy import select
 
-from app.persistence.db import base_datos_disponible
+from app.persistence.db import base_datos_disponible, db
+from app.persistence.models import Ingesta
+from app.services.ingesta import ejecutar_ingesta
 from app.services.model_service import EntradaInvalida
 
 api_bp = Blueprint("api", "app.api.routes", url_prefix="/api")
@@ -56,3 +59,33 @@ def predict():
         return jsonify(errores=error.errores), 400
 
     return jsonify(resultado), 200
+
+
+@api_bp.post("/ingesta")
+def ingesta():
+    """Ejecuta la ingesta (ETL) desde datos.gov.co y devuelve el resumen."""
+    try:
+        resumen = ejecutar_ingesta()
+    except Exception as error:
+        return jsonify(estado="fallida", error=str(error)), 500
+    return jsonify(resumen), 201
+
+
+@api_bp.get("/ingestas")
+def ingestas():
+    """Historial de las últimas 20 ingestas (trazabilidad)."""
+    consulta = select(Ingesta).order_by(Ingesta.id.desc()).limit(20)
+    filas = db.session.execute(consulta).scalars()
+    return jsonify([
+        {
+            "id": i.id,
+            "fecha": i.fecha.isoformat(),
+            "estado": i.estado,
+            "filas_recibidas": i.filas_recibidas,
+            "filas_unicas": i.filas_unicas,
+            "filas_nuevas": i.filas_nuevas,
+            "duracion_s": i.duracion_s,
+            "mensaje": i.mensaje,
+        }
+        for i in filas
+    ])

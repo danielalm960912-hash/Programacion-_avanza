@@ -32,5 +32,12 @@ def create_app() -> Flask:
 
         db.create_all()
         print("Tablas creadas (o ya existían).")
+    # comando de consola:  flask --app app ingestar
+    @app.cli.command("ingestar")
+    def ingestar():
+        """Ejecuta la ingesta (ETL) desde datos.gov.co."""
+        from app.services.ingesta import ejecutar_ingesta
+
+        print(ejecutar_ingesta())
 
     return app
