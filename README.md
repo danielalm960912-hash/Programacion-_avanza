@@ -323,3 +323,45 @@ pytest
 - **Datadog solo en local:** el plan gratuito de Render no permite ejecutar el agente de Datadog junto a la app. En Render los logs JSON se consultan en la pestaña Logs del servicio.
 - **Alcance del modelo:** entrenado solo con estudiantes de Antioquia del periodo 2022-2; no necesariamente generaliza a otros departamentos o periodos.
 - **Error del modelo:** con un RMSE cercano a 40 puntos, la predicción es una **estimación orientativa**, no un pronóstico exacto del puntaje de un estudiante.
+
+
+
+## Evidencias
+
+Capturas tomadas el 23 de noviembre de 2026.
+
+### Aplicación desplegada (Render + Neon)
+
+**Estado del servicio** (`/api/health`): app, base de datos y modelo funcionando.
+
+![Health check en Render](docs/evidencias/01_health_render.png)
+
+**Predicción** con puntaje, rango probable y barra de error (RMSE).
+
+![Predicción en Render](docs/evidencias/02_prediccion_render.png)
+
+**Historial:** predicciones hechas desde Render y desde el entorno local en modo Neon, guardadas en la misma base de datos.
+
+![Historial en Render](docs/evidencias/03_historial_render.png)
+
+**Datos:** ingesta desde datos.gov.co y explorador de los datos normalizados.
+
+![Datos en Render](docs/evidencias/04_datos_render.png)
+
+**Despliegue automático** en Render tras un commit.
+
+![Deploy en Render](docs/evidencias/05_render_deploy_live.png)
+
+### Observabilidad (Datadog)
+
+**Log Explorer** filtrado por el servicio.
+
+![Logs en Datadog](docs/evidencias/06_datadog_logs.png)
+
+**Log estructurado** de una predicción con sus campos.
+
+![Detalle de log en Datadog](docs/evidencias/07_datadog_detalle.png)
+
+**Logs JSON** generados por la aplicación.
+
+![Logs JSON en la terminal](docs/evidencias/08_logs_json_terminal.png)
