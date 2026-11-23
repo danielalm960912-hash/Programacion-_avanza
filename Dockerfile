@@ -23,4 +23,4 @@ USER appuser
 EXPOSE 8000
 
 # Al arrancar: crea las tablas que falten y levanta Gunicorn con la fábrica de la app
-CMD ["sh", "-c", "flask --app app crear-tablas && exec gunicorn --bind 0.0.0.0:8000 --workers 2 --timeout 300 'app:create_app()'"]
+CMD ["sh", "-c", "flask --app app crear-tablas && exec gunicorn --bind 0.0.0.0:${PORT:-8000} --timeout 300 'app:create_app()'"]

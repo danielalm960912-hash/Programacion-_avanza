@@ -73,6 +73,11 @@ def predict():
 @api_bp.post("/ingesta")
 def ingesta():
     """Ejecuta la ingesta (ETL) desde datos.gov.co y devuelve el resumen."""
+    if not current_app.config["INGESTA_HABILITADA"]:
+        return jsonify(
+            estado="deshabilitada",
+            error="La ingesta está deshabilitada en este despliegue. Los datos se cargan desde el entorno local.",
+        ), 403
     try:
         resumen = ejecutar_ingesta()
     except Exception as error:

@@ -11,3 +11,6 @@ class Config:
     MODELS_DIR = os.getenv("MODELS_DIR", "models")
     SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL")
     SQLALCHEMY_ENGINE_OPTIONS = {"pool_pre_ping": True}
+    # En el despliegue gratuito (512 MB de RAM) la ingesta se desactiva:
+    # los datos se cargan a Neon desde el entorno local.
+    INGESTA_HABILITADA = os.getenv("INGESTA_HABILITADA", "true").lower() == "true"
