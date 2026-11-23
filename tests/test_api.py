@@ -48,3 +48,16 @@ def test_predict_queda_registrada(cliente):
 
     historial = cliente.get("/api/predicciones").get_json()
     assert prediccion_id in [p["id"] for p in historial]
+    
+    
+def test_resumen_de_datos(cliente):
+    datos = cliente.get("/api/resumen-datos").get_json()
+    assert datos["resumen"]["estudiantes"] > 0
+    assert len(datos["filtros"]["municipios"]) > 0
+
+
+def test_estudiantes_paginados(cliente):
+    datos = cliente.get("/api/estudiantes?pagina=2").get_json()
+    assert datos["pagina"] == 2
+    assert len(datos["estudiantes"]) == 25
+    assert "punt_global" in datos["estudiantes"][0]

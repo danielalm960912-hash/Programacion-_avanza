@@ -39,6 +39,68 @@
     </table>
   </div>
 </div>
+
+<h2 class="h5 mt-5 mb-1">Explorar los datos cargados</h2>
+<p class="text-muted small">
+  Estudiantes guardados en PostgreSQL. Cada fila se reconstruye uniendo las tablas normalizadas
+  (resultado, sede_jornada, sede, establecimiento y municipio).
+</p>
+
+<div class="row g-3 mb-3" id="resumen">
+  <div class="col-6 col-md"><div class="card text-center h-100"><div class="card-body">
+    <div class="small text-muted">Estudiantes</div><div class="fs-4 fw-bold" id="r-estudiantes">—</div>
+  </div></div></div>
+  <div class="col-6 col-md"><div class="card text-center h-100"><div class="card-body">
+    <div class="small text-muted">Sedes</div><div class="fs-4 fw-bold" id="r-sedes">—</div>
+  </div></div></div>
+  <div class="col-6 col-md"><div class="card text-center h-100"><div class="card-body">
+    <div class="small text-muted">Establecimientos</div><div class="fs-4 fw-bold" id="r-establecimientos">—</div>
+  </div></div></div>
+  <div class="col-6 col-md"><div class="card text-center h-100"><div class="card-body">
+    <div class="small text-muted">Municipios registrados</div><div class="fs-4 fw-bold" id="r-municipios">—</div>
+  </div></div></div>
+  <div class="col-12 col-md"><div class="card text-center h-100"><div class="card-body">
+    <div class="small text-muted">Puntaje global promedio</div><div class="fs-4 fw-bold" id="r-promedio">—</div>
+  </div></div></div>
+</div>
+
+<div class="d-flex flex-wrap gap-2 align-items-end mb-2">
+  <div>
+    <label class="form-label small mb-1" for="filtro-municipio">Municipio del colegio</label>
+    <select class="form-select form-select-sm" id="filtro-municipio"><option value="">Todos</option></select>
+  </div>
+  <div>
+    <label class="form-label small mb-1" for="filtro-naturaleza">Naturaleza</label>
+    <select class="form-select form-select-sm" id="filtro-naturaleza"><option value="">Todas</option></select>
+  </div>
+  <button class="btn btn-sm btn-primary" id="boton-filtrar">Filtrar</button>
+</div>
+
+<div class="card">
+  <div class="table-responsive">
+    <table class="table table-sm table-hover align-middle mb-0">
+      <thead class="table-light">
+        <tr>
+          <th>Consecutivo</th>
+          <th>Municipio</th>
+          <th>Sede</th>
+          <th>Naturaleza</th>
+          <th>Jornada</th>
+          <th>Estrato</th>
+          <th class="text-end">Puntaje global</th>
+        </tr>
+      </thead>
+      <tbody id="filas-estudiantes">
+        <tr><td colspan="7" class="text-muted">Cargando...</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="card-footer d-flex justify-content-between align-items-center">
+    <button class="btn btn-sm btn-outline-secondary" id="boton-anterior">Anterior</button>
+    <span class="small text-muted" id="info-pagina"></span>
+    <button class="btn btn-sm btn-outline-secondary" id="boton-siguiente">Siguiente</button>
+  </div>
+</div>
 {% endblock %}
 
 {% block scripts %}
@@ -143,10 +205,100 @@
     } finally {
       botonIngesta.disabled = false;
       cargarHistorial();
+      cargarResumen();
+      cargarEstudiantes(1);
     }
   });
 
   document.getElementById("boton-actualizar").addEventListener("click", cargarHistorial);
   cargarHistorial();
+
+  // ------------------------------------------------------------------
+  // Explorar los datos cargados: resumen, filtros y tabla paginada
+  // ------------------------------------------------------------------
+  const URL_RESUMEN = "/api/resumen-datos";
+  const URL_ESTUDIANTES = "/api/estudiantes";
+  const cuerpoEstudiantes = document.getElementById("filas-estudiantes");
+  const filtroMunicipio = document.getElementById("filtro-municipio");
+  const filtroNaturaleza = document.getElementById("filtro-naturaleza");
+  const infoPagina = document.getElementById("info-pagina");
+  const botonAnterior = document.getElementById("boton-anterior");
+  const botonSiguiente = document.getElementById("boton-siguiente");
+  let paginaActual = 1;
+
+  function llenarSelect(select, valores) {
+    for (const valor of valores) {
+      const opcion = document.createElement("option");
+      opcion.value = valor;
+      opcion.textContent = valor;
+      select.appendChild(opcion);
+    }
+  }
+
+  async function cargarResumen() {
+    try {
+      const datos = await (await fetch(URL_RESUMEN)).json();
+      document.getElementById("r-estudiantes").textContent = numero(datos.resumen.estudiantes);
+      document.getElementById("r-sedes").textContent = numero(datos.resumen.sedes);
+      document.getElementById("r-establecimientos").textContent = numero(datos.resumen.establecimientos);
+      document.getElementById("r-municipios").textContent = numero(datos.resumen.municipios);
+      document.getElementById("r-promedio").textContent = datos.resumen.puntaje_promedio ?? "—";
+      if (filtroMunicipio.options.length === 1) {
+        llenarSelect(filtroMunicipio, datos.filtros.municipios);
+        llenarSelect(filtroNaturaleza, datos.filtros.naturalezas);
+      }
+    } catch (error) {
+      document.getElementById("r-estudiantes").textContent = "Error";
+    }
+  }
+
+  function mensajeEstudiantes(texto) {
+    const fila = document.createElement("tr");
+    const td = celda(texto, "text-muted");
+    td.colSpan = 7;
+    fila.appendChild(td);
+    cuerpoEstudiantes.replaceChildren(fila);
+  }
+
+  async function cargarEstudiantes(pagina) {
+    mensajeEstudiantes("Cargando...");
+    const parametros = new URLSearchParams({ pagina: pagina });
+    if (filtroMunicipio.value) parametros.set("municipio", filtroMunicipio.value);
+    if (filtroNaturaleza.value) parametros.set("naturaleza", filtroNaturaleza.value);
+    try {
+      const datos = await (await fetch(URL_ESTUDIANTES + "?" + parametros.toString())).json();
+      const totalPaginas = Math.max(Math.ceil(datos.total / datos.por_pagina), 1);
+      paginaActual = datos.pagina;
+      infoPagina.textContent =
+        "Página " + numero(paginaActual) + " de " + numero(totalPaginas) +
+        " · " + numero(datos.total) + " estudiantes";
+      botonAnterior.disabled = paginaActual <= 1;
+      botonSiguiente.disabled = paginaActual >= totalPaginas;
+      if (datos.estudiantes.length === 0) {
+        mensajeEstudiantes("No hay estudiantes con esos filtros.");
+        return;
+      }
+      cuerpoEstudiantes.replaceChildren();
+      for (const e of datos.estudiantes) {
+        const fila = document.createElement("tr");
+        fila.appendChild(celda(e.estu_consecutivo));
+        fila.appendChild(celda(e.municipio));
+        fila.appendChild(celda(e.sede));
+        fila.appendChild(celda(e.naturaleza));
+        fila.appendChild(celda(e.jornada));
+        fila.appendChild(celda(e.estrato));
+        fila.appendChild(celda(e.punt_global, "text-end fw-semibold"));
+        cuerpoEstudiantes.appendChild(fila);
+      }
+    } catch (error) {
+      mensajeEstudiantes("No se pudieron cargar los estudiantes: " + error.message);
+    }
+  }
+
+  document.getElementById("boton-filtrar").addEventListener("click", () => cargarEstudiantes(1));
+  botonAnterior.addEventListener("click", () => cargarEstudiantes(paginaActual - 1));
+  botonSiguiente.addEventListener("click", () => cargarEstudiantes(paginaActual + 1));
+  cargarResumen();
+  cargarEstudiantes(1);
 </script>
 {% endblock %}

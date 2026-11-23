@@ -7,7 +7,12 @@ from app.persistence.db import base_datos_disponible, db
 from app.persistence.models import Ingesta
 from app.services.ingesta import ejecutar_ingesta
 from app.services.model_service import EntradaInvalida
-from app.persistence.repositorio import ultimas_predicciones
+from app.persistence.repositorio import (
+    consultar_estudiantes,
+    opciones_filtros,
+    resumen_datos,
+    ultimas_predicciones,
+)
 from app.services.prediction_services import predecir_y_registrar
 
 api_bp = Blueprint("api", "app.api.routes", url_prefix="/api")
@@ -112,3 +117,18 @@ def predicciones():
         }
         for p in ultimas_predicciones()
     ])
+    
+
+@api_bp.get("/resumen-datos")
+def resumen():
+    """Cuántos datos de la fuente hay guardados y las opciones para filtrarlos."""
+    return jsonify(resumen=resumen_datos(), filtros=opciones_filtros())
+
+
+@api_bp.get("/estudiantes")
+def estudiantes():
+    """Estudiantes guardados, paginados de 25 en 25 y con filtros opcionales."""
+    pagina = max(request.args.get("pagina", 1, type=int), 1)
+    municipio = request.args.get("municipio") or None
+    naturaleza = request.args.get("naturaleza") or None
+    return jsonify(consultar_estudiantes(pagina, 25, municipio, naturaleza))
