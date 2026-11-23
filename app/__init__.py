@@ -5,9 +5,11 @@ from flask import Flask
 from app.config import Config
 from app.persistence.db import db
 from app.services.model_service import ModelService
+from app.logging_config import configurar_logs
 
 
 def create_app() -> Flask:
+    configurar_logs()
     app = Flask("app")
     app.config.from_object(Config)
     app.json.ensure_ascii = False  # tildes y eñes legibles en las respuestas JSON

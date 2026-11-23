@@ -1,8 +1,11 @@
 """Capa de negocio: predice y deja registro persistente de cada inferencia."""
 
+import logging
 from flask import current_app
 
 from app.persistence import repositorio
+
+logger = logging.getLogger("saber11.prediccion")
 
 
 def predecir_y_registrar(entradas: dict, origen: str = "api") -> dict:
@@ -18,4 +21,17 @@ def predecir_y_registrar(entradas: dict, origen: str = "api") -> dict:
         repositorio.deshacer()
         current_app.logger.exception("No se pudo guardar la predicción en la base de datos")
         resultado["prediccion_id"] = None
+
+    # Nuevo: deja un registro estructurado (JSON) de cada predicción para Datadog
+    logger.info(
+        "Predicción realizada",
+        extra={
+            "origen": origen,
+            "puntaje_predicho": resultado["puntaje_predicho"],
+            "etiqueta": resultado["etiqueta"],
+            "latencia_ms": resultado["latencia_ms"],
+            "prediccion_id": resultado["prediccion_id"],
+            "modelo_version": resultado["modelo_version"],
+        },
+    )
     return resultado
