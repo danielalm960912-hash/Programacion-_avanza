@@ -1,0 +1,6 @@
+# Modo Neon: la app usa la base de datos en la nube en lugar del PostgreSQL local.
+# Uso:  docker compose -f docker-compose.yml -f docker-compose.neon.yml up -d
+services:
+  app:
+    environment:
+      DATABASE_URL: ${NEON_DATABASE_URL}
